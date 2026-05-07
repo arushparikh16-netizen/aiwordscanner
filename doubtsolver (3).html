@@ -1,0 +1,693 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DoubtSolver AI — Detect scams, phishing & risky messages</title>
+<meta name="description" content="Drop any suspicious message, screenshot, or document. DoubtSolver AI runs a neural deep-scan and shows your risk in seconds." />
+<meta property="og:title" content="DoubtSolver AI — Aura Edition" />
+<meta property="og:description" content="AI-powered scam, phishing, and fraud detection with a stunning cyber-minimal interface." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --radius: 14px;
+    --background: #0b0816;
+    --foreground: #f3f4ff;
+    --muted: #1a1830;
+    --muted-foreground: #9aa0b8;
+    --border: rgba(255,255,255,0.10);
+    --primary: oklch(0.82 0.18 195);
+    --primary-foreground: #0a0717;
+    --color-cyan: oklch(0.82 0.18 195);
+    --color-emerald: oklch(0.78 0.18 160);
+    --color-amber: oklch(0.82 0.17 75);
+    --color-crimson: oklch(0.65 0.24 20);
+    --color-violet: oklch(0.62 0.22 295);
+    --destructive: oklch(0.62 0.24 22);
+    --ambient-glow: oklch(0.55 0.22 295 / 0.35);
+  }
+  * { box-sizing: border-box; border-color: var(--border); }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      radial-gradient(1200px 800px at 10% 0%, oklch(0.30 0.12 285 / 0.45), transparent 60%),
+      radial-gradient(1000px 700px at 100% 100%, oklch(0.28 0.14 240 / 0.45), transparent 60%),
+      radial-gradient(900px 600px at 50% 50%, var(--ambient-glow), transparent 70%);
+    background-attachment: fixed;
+    background-size: 200% 200%;
+    animation: mesh 25s ease infinite;
+    overflow-x: hidden;
+  }
+  button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; }
+  textarea, input { font: inherit; color: inherit; }
+  a { color: inherit; }
+
+  .container { max-width: 1120px; margin: 0 auto; padding: 0 16px; }
+  @media (min-width: 640px) { .container { padding: 0 24px; } }
+
+  .glass {
+    background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+    backdrop-filter: blur(20px) saturate(140%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    border: 1px solid rgba(255,255,255,0.10);
+    box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.08), 0 10px 40px -10px rgba(0,0,0,0.6);
+    border-radius: 18px;
+  }
+  .glass-strong {
+    background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.04));
+    backdrop-filter: blur(28px) saturate(160%);
+    -webkit-backdrop-filter: blur(28px) saturate(160%);
+    border: 1px solid rgba(255,255,255,0.14);
+    box-shadow:
+      inset 0 1px 0 0 rgba(255,255,255,0.12),
+      0 20px 60px -20px rgba(0,0,0,0.7),
+      0 0 60px -20px var(--ambient-glow);
+    border-radius: 22px;
+  }
+
+  .text-metallic {
+    background: linear-gradient(180deg, #fcfcff 0%, #c8cadc 50%, #7d809a 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .text-cyan-glow {
+    color: var(--color-cyan);
+    text-shadow: 0 0 20px oklch(0.82 0.18 195 / 0.6);
+  }
+  .ring-glow {
+    box-shadow:
+      0 0 0 1px oklch(0.82 0.18 195 / 0.6),
+      0 0 30px 0 oklch(0.82 0.18 195 / 0.4),
+      inset 0 0 20px 0 oklch(0.82 0.18 195 / 0.15);
+  }
+  .chip-glow {
+    background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+    border: 1px solid oklch(0.82 0.18 195 / 0.35);
+    color: oklch(0.95 0.05 200);
+    box-shadow: 0 0 16px -2px oklch(0.82 0.18 195 / 0.45), inset 0 0 12px -4px oklch(0.82 0.18 195 / 0.4);
+    transition: transform .2s, box-shadow .2s;
+  }
+  .chip-glow:hover { transform: translateY(-1px) scale(1.03); box-shadow: 0 0 24px 0 oklch(0.82 0.18 195 / 0.7), inset 0 0 16px -4px oklch(0.82 0.18 195 / 0.6); }
+  .chip-glow:active { transform: scale(.97); }
+
+  .tap-press { transition: transform .15s ease; }
+  .tap-press:hover { transform: scale(1.05); }
+  .tap-press:active { transform: scale(.96); }
+
+  .laser-line {
+    position: absolute; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, oklch(0.82 0.18 195), transparent);
+    box-shadow: 0 0 20px 2px oklch(0.82 0.18 195 / 0.8);
+    animation: laser 2s linear infinite;
+  }
+  .scan-grid {
+    background-image:
+      linear-gradient(oklch(0.82 0.18 195 / 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, oklch(0.82 0.18 195 / 0.08) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  .ripple {
+    position: absolute; border-radius: 9999px;
+    background: oklch(0.82 0.18 195 / 0.4);
+    transform: scale(0); animation: ripple .6s ease-out; pointer-events: none;
+  }
+  .breathe { animation: breathe 3s ease-in-out infinite; }
+  .float { animation: float 6s ease-in-out infinite; }
+  .rise { animation: rise .6s cubic-bezier(0.16,1,0.3,1) both; }
+  .pulse-dot { animation: pulse 1.5s ease-in-out infinite; }
+
+  @keyframes breathe {
+    0%,100% { box-shadow: 0 0 0 0 transparent, inset 0 0 20px -8px oklch(0.82 0.18 195 / 0.2); }
+    50% { box-shadow: 0 0 40px -4px oklch(0.82 0.18 195 / 0.5), inset 0 0 30px -8px oklch(0.82 0.18 195 / 0.45); }
+  }
+  @keyframes float { 0%,100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-10px) rotate(2deg); } }
+  @keyframes laser { 0% { top: 0%; opacity: .2; } 50% { opacity: 1; } 100% { top: 100%; opacity: .2; } }
+  @keyframes mesh { 0%,100% { background-position: 0% 50%, 100% 50%, 50% 50%; } 50% { background-position: 50% 100%, 50% 0%, 50% 80%; } }
+  @keyframes ripple { to { transform: scale(4); opacity: 0; } }
+  @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
+
+  /* Header */
+  header.app-header { display:flex; align-items:center; justify-content:space-between; padding: 32px 0 24px; }
+  .logo-wrap { display:flex; align-items:center; gap: 10px; }
+  .logo-box { position:relative; display:grid; place-items:center; height:36px; width:36px; border-radius: 12px; }
+  .logo-box::after { content:""; position:absolute; inset:-2px; border-radius:14px; box-shadow: 0 0 0 1px oklch(0.82 0.18 195 / 0.30); pointer-events:none; }
+  .logo-title { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
+  .logo-sub { font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; }
+  .pill { display: none; align-items:center; gap: 8px; border-radius: 9999px; padding: 6px 12px; font-size: 12px; color: var(--muted-foreground); }
+  @media (min-width:640px) { .pill { display:inline-flex; } }
+
+  /* Hero */
+  .hero { text-align:center; padding: 16px 0 40px; }
+  .badge { display:inline-flex; align-items:center; gap: 8px; border-radius: 9999px; padding: 4px 12px; font-size: 12px; color: var(--muted-foreground); }
+  h1.hero-title { margin: 20px 0 0; font-size: 40px; line-height: 1.05; font-weight: 800; letter-spacing: -0.02em; }
+  @media (min-width:640px) { h1.hero-title { font-size: 60px; } }
+  .hero p { margin: 16px auto 0; max-width: 640px; font-size: 14px; color: var(--muted-foreground); }
+  @media (min-width:640px) { .hero p { font-size: 16px; } }
+
+  /* Insight Hub */
+  .stack { display: flex; flex-direction: column; gap: 24px; padding-bottom: 80px; }
+  .hub-head { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom: 20px; }
+  .eyebrow { font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--color-cyan); text-shadow: 0 0 20px oklch(0.82 0.18 195 / 0.6); }
+  .hub-head h2 { margin: 4px 0 0; font-size: 24px; font-weight: 600; }
+  @media (min-width: 640px) { .hub-head h2 { font-size: 30px; } }
+  .tabs { display:none; gap: 4px; padding: 4px; border-radius: 9999px; }
+  @media (min-width: 640px) { .tabs { display:inline-flex; } }
+  .tab { display:inline-flex; align-items:center; gap: 6px; border-radius: 9999px; padding: 6px 12px; font-size: 12px; font-weight: 500; color: var(--muted-foreground); transition: color .2s, background .2s; }
+  .tab:hover { color: var(--foreground); }
+  .tab.active { background: oklch(0.82 0.18 195 / 0.15); color: var(--color-cyan); box-shadow: inset 0 0 0 1px oklch(0.82 0.18 195 / 0.40); }
+  .icon-sm { width: 14px; height: 14px; }
+  .icon-md { width: 16px; height: 16px; }
+  .icon-lg { width: 20px; height: 20px; }
+
+  .dropzone { position:relative; cursor:pointer; border-radius: 16px; border: 2px dashed var(--border); padding: 24px; text-align:center; transition: all .2s; overflow:hidden; }
+  .dropzone:hover { border-color: oklch(0.82 0.18 195 / 0.5); }
+  .dropzone.drag { transform: scale(1.01); border-color: var(--color-cyan); box-shadow: 0 0 0 1px oklch(0.82 0.18 195 / 0.6), 0 0 30px 0 oklch(0.82 0.18 195 / 0.4); }
+  .dz-inner { display:flex; flex-direction:column; align-items:center; gap: 8px; padding: 16px 0; }
+  .dz-circle { display:grid; place-items:center; height:48px; width:48px; border-radius: 9999px; }
+  .dz-title { font-size: 14px; font-weight: 500; }
+  .dz-sub { font-size: 12px; color: var(--muted-foreground); }
+  .preview-img { max-height: 192px; border-radius: 8px; border: 1px solid var(--border); }
+
+  textarea.area {
+    width: 100%; resize: none; border-radius: 12px;
+    background: rgba(60,60,90,0.25); padding: 12px 16px; font-size: 14px;
+    outline: none; box-shadow: inset 0 0 0 1px var(--border); transition: box-shadow .2s;
+    color: var(--foreground); border:0;
+  }
+  textarea.area::placeholder { color: rgba(154,160,184,0.7); }
+  textarea.area:focus { box-shadow: inset 0 0 0 1px oklch(0.82 0.18 195 / 0.6); }
+
+  .row-foot { display:flex; align-items:center; justify-content:space-between; gap: 12px; margin-top: 20px; }
+  .scan-btn {
+    display:inline-flex; align-items:center; gap: 8px;
+    border-radius: 9999px; background: var(--primary); color: var(--primary-foreground);
+    padding: 10px 20px; font-size: 14px; font-weight: 600;
+    box-shadow: 0 0 30px -4px oklch(0.82 0.18 195 / 0.7);
+  }
+  .scan-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* Empty state */
+  .empty { padding: 40px; text-align:center; }
+  .shield-3d { position:relative; height: 128px; width: 128px; margin: 0 auto; perspective: 600px; }
+  .shield-inner { position:absolute; inset:0; display:grid; place-items:center; transform: rotateX(15deg) rotateY(-15deg); }
+  .shield-glow { position:absolute; inset:0; border-radius: 9999px; filter: blur(40px); background: var(--color-cyan); opacity: .35; }
+  .shield-box { position:relative; display:grid; height:112px; width:112px; place-items:center; border-radius: 24px;
+    box-shadow: inset 0 2px 0 rgba(255,255,255,0.2), 0 30px 60px -20px oklch(0.82 0.18 195 / 0.5); }
+  .empty h3 { margin: 24px 0 0; font-size: 18px; font-weight: 600; }
+  .empty p { margin: 8px auto 0; max-width: 360px; font-size: 14px; color: var(--muted-foreground); }
+
+  /* Neural Scan */
+  .scan-window { position:relative; height: 256px; width: 100%; overflow:hidden; border-radius: 12px; border: 1px solid var(--border); }
+  .scan-bottom { display:grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 16px; font-size: 10px; letter-spacing: .15em; text-transform: uppercase; color: var(--muted-foreground); }
+  .scan-cell { padding: 6px 8px; text-align:center; border-radius: 8px; }
+
+  /* Result */
+  .grid-2 { display:grid; gap: 20px; }
+  @media (min-width: 768px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
+  .red-flags { display:flex; flex-direction:column; gap: 8px; padding: 0; margin: 0; list-style: none; }
+  .red-flag { display:flex; align-items:flex-start; gap: 12px; border-radius: 10px; padding: 12px; font-size: 14px; }
+
+  .bento { display:grid; gap: 12px; grid-template-columns: 1fr; }
+  @media (min-width: 640px) { .bento { grid-template-columns: 1fr 1fr; } }
+  @media (min-width: 1024px) { .bento { grid-template-columns: repeat(4, 1fr); } }
+  .step { padding: 16px; }
+  .step-icon { display:grid; height: 40px; width: 40px; place-items:center; border-radius: 10px; margin-bottom: 12px; }
+  .step-title { font-size: 14px; font-weight: 600; }
+  .step-desc { margin-top: 4px; font-size: 12px; color: var(--muted-foreground); line-height: 1.5; }
+
+  .prose-content h2, .prose-content h3 { color: var(--foreground); margin: 16px 0 6px; }
+  .prose-content h2 { font-size: 18px; }
+  .prose-content h3 { font-size: 15px; }
+  .prose-content p { margin: 6px 0; }
+  .prose-content ul { margin: 6px 0; padding-left: 18px; }
+  .prose-content code { background: rgba(255,255,255,0.08); padding: 1px 6px; border-radius: 4px; font-size: 12px; }
+  .prose-content strong { color: var(--foreground); }
+
+  .replies { display:flex; flex-wrap:wrap; gap: 8px; }
+  .reply { position:relative; overflow:hidden; display:inline-flex; align-items:center; gap: 8px; border-radius: 9999px; padding: 8px 16px; font-size: 14px; }
+  .reply span.txt { max-width: 260px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+  .err { padding: 16px; border-radius: 18px; border: 1px solid oklch(0.62 0.24 22 / 0.4); color: #ffd9d9; font-size: 14px; }
+  footer.app-foot { padding: 40px 0; text-align:center; font-size: 11px; color: var(--muted-foreground); }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header class="app-header">
+    <div class="logo-wrap">
+      <div class="logo-box glass">
+        <svg class="icon-md" style="color:var(--color-cyan)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>
+      </div>
+      <div>
+        <div class="logo-title">DoubtSolver</div>
+        <div class="logo-sub text-cyan-glow">Aura · AI</div>
+      </div>
+    </div>
+    <div class="pill glass">
+      <svg class="icon-sm" style="color:var(--color-cyan)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+      <span>Neural engine online</span>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="badge glass">
+      <svg class="icon-sm" style="color:var(--color-cyan)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
+      Detect scams, phishing & fraud in seconds
+    </div>
+    <h1 class="hero-title text-metallic">Stop second-guessing.<br/>Start neural-scanning.</h1>
+    <p>Paste a sketchy message, drop a screenshot, or upload a document. DoubtSolver gives you a risk score, red flags, and exactly what to do next.</p>
+  </section>
+
+  <section class="stack">
+    <!-- Insight Hub -->
+    <div class="glass-strong rise" style="padding: 24px;">
+      <div class="hub-head">
+        <div>
+          <div class="eyebrow">Insight Hub</div>
+          <h2 class="text-metallic">Drop something suspicious</h2>
+        </div>
+        <div class="tabs glass" id="tabs">
+          <button class="tab tap-press active" data-mode="message">
+            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z"/></svg>
+            Message
+          </button>
+          <button class="tab tap-press" data-mode="document">
+            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+            Document
+          </button>
+          <button class="tab tap-press" data-mode="image">
+            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+            Screenshot
+          </button>
+        </div>
+      </div>
+
+      <div id="dropzone" class="dropzone breathe">
+        <input id="fileInput" type="file" accept="image/*,text/*,.pdf,.txt,.eml,.html" style="display:none" />
+        <div id="dzDefault" class="dz-inner">
+          <div class="dz-circle glass">
+            <svg class="icon-md" style="color:var(--color-cyan)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <p class="dz-title"><span class="text-cyan-glow">Drop a file</span> or click to upload</p>
+          <p class="dz-sub">Screenshots, documents, emails (.txt, .pdf, images)</p>
+        </div>
+        <div id="dzPreview" class="dz-inner" style="display:none">
+          <img id="previewImg" class="preview-img" alt="preview"/>
+          <p class="dz-sub">Tap to swap • Or add context below</p>
+        </div>
+      </div>
+
+      <div style="margin-top: 20px;">
+        <textarea id="textArea" class="area" rows="5" placeholder="Paste the suspicious message here…"></textarea>
+      </div>
+
+      <div class="row-foot">
+        <p class="dz-sub">Powered by neural deep-scan • Encrypted in transit</p>
+        <button id="runBtn" class="scan-btn tap-press" disabled>
+          <svg class="icon-md" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
+          <span id="runLabel">Run Neural Scan</span>
+        </button>
+      </div>
+    </div>
+
+    <div id="errorBox" class="glass err rise" style="display:none"></div>
+
+    <!-- Neural Scan -->
+    <div id="scanPanel" class="glass-strong rise" style="display:none; padding: 24px;">
+      <div style="display:flex; align-items:center; gap: 8px; margin-bottom: 12px;">
+        <span class="pulse-dot" style="height:8px; width:8px; border-radius:9999px; background: var(--color-cyan); display:inline-block;"></span>
+        <span class="eyebrow">Neural deep-scan in progress</span>
+      </div>
+      <div class="scan-window scan-grid">
+        <img id="scanPreview" alt="" style="position:absolute; inset:0; height:100%; width:100%; object-fit:contain; opacity:.8; display:none;"/>
+        <div id="scanText" style="position:absolute; inset:0; display:grid; place-items:center; color: var(--muted-foreground); font-size: 14px; text-align:center; padding: 0 16px;">
+          Parsing tokens • Cross-referencing fraud patterns • Building risk vector…
+        </div>
+        <div class="laser-line"></div>
+      </div>
+      <div class="scan-bottom">
+        <div class="scan-cell glass">Tokenizing</div>
+        <div class="scan-cell glass">Pattern Match</div>
+        <div class="scan-cell glass">Risk Vector</div>
+      </div>
+    </div>
+
+    <!-- Result -->
+    <div id="resultPanel" style="display:none; gap:20px; flex-direction:column;"></div>
+
+    <!-- Empty state -->
+    <div id="emptyState" class="glass-strong empty rise">
+      <div class="shield-3d">
+        <div class="shield-inner float">
+          <div style="position:relative">
+            <div class="shield-glow"></div>
+            <div class="shield-box glass">
+              <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--color-cyan); filter: drop-shadow(0 0 12px oklch(0.82 0.18 195 / 0.8));"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+      <h3 class="text-metallic">Your shield is active</h3>
+      <p>Drop a message, screenshot, or document above. DoubtSolver will deep-scan it for scams, phishing, and risks.</p>
+    </div>
+  </section>
+
+  <footer class="app-foot">
+    Built with <span class="text-cyan-glow">cyber-minimal</span> aura · Always verify with official sources before acting.
+  </footer>
+</div>
+
+<script>
+  // ---------- Config ----------
+  const SUPABASE_URL = "https://mvyfbrjwhatgicypufmn.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im12eWZicmp3aGF0Z2ljeXB1Zm1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxNDIyODgsImV4cCI6MjA5MzcxODI4OH0.SR93WpKFbBxlWssTgaW8mXcV8N0dI1wGemu2_3kImkQ";
+
+  // ---------- State ----------
+  let mode = "message";
+  let imageBase64 = null;
+  let loading = false;
+  let result = null;
+  let error = null;
+
+  const $ = (id) => document.getElementById(id);
+  const tabsEl = $("tabs");
+  const dropzone = $("dropzone");
+  const fileInput = $("fileInput");
+  const dzDefault = $("dzDefault");
+  const dzPreview = $("dzPreview");
+  const previewImg = $("previewImg");
+  const textArea = $("textArea");
+  const runBtn = $("runBtn");
+  const runLabel = $("runLabel");
+  const scanPanel = $("scanPanel");
+  const scanPreview = $("scanPreview");
+  const scanText = $("scanText");
+  const resultPanel = $("resultPanel");
+  const emptyState = $("emptyState");
+  const errorBox = $("errorBox");
+
+  // ---------- Tabs ----------
+  tabsEl.addEventListener("click", (e) => {
+    const btn = e.target.closest(".tab");
+    if (!btn) return;
+    mode = btn.dataset.mode;
+    [...tabsEl.querySelectorAll(".tab")].forEach(t => t.classList.toggle("active", t === btn));
+    textArea.placeholder = mode === "message"
+      ? "Paste the suspicious message here…"
+      : mode === "image"
+        ? "Optional: add context about this screenshot…"
+        : "Paste document content here…";
+  });
+
+  // ---------- Drop / File ----------
+  dropzone.addEventListener("click", () => fileInput.click());
+  dropzone.addEventListener("dragover", (e) => { e.preventDefault(); dropzone.classList.add("drag"); });
+  dropzone.addEventListener("dragleave", () => dropzone.classList.remove("drag"));
+  dropzone.addEventListener("drop", (e) => {
+    e.preventDefault(); dropzone.classList.remove("drag");
+    const f = e.dataTransfer.files?.[0]; if (f) handleFile(f);
+  });
+  fileInput.addEventListener("change", (e) => {
+    const f = e.target.files?.[0]; if (f) handleFile(f);
+  });
+
+  function handleFile(file) {
+    if (file.type.startsWith("image/")) {
+      mode = "image";
+      [...tabsEl.querySelectorAll(".tab")].forEach(t => t.classList.toggle("active", t.dataset.mode === "image"));
+      const reader = new FileReader();
+      reader.onload = () => {
+        const url = reader.result;
+        imageBase64 = url;
+        previewImg.src = url;
+        dzDefault.style.display = "none";
+        dzPreview.style.display = "flex";
+        updateRunBtn();
+      };
+      reader.readAsDataURL(file);
+    } else {
+      mode = "document";
+      [...tabsEl.querySelectorAll(".tab")].forEach(t => t.classList.toggle("active", t.dataset.mode === "document"));
+      const reader = new FileReader();
+      reader.onload = () => {
+        textArea.value = String(reader.result || "").slice(0, 12000);
+        updateRunBtn();
+      };
+      reader.readAsText(file);
+    }
+  }
+
+  textArea.addEventListener("input", updateRunBtn);
+  function updateRunBtn() {
+    runBtn.disabled = loading || (!textArea.value.trim() && !imageBase64);
+  }
+
+  // ---------- Run ----------
+  runBtn.addEventListener("click", run);
+  async function run() {
+    if (loading) return;
+    const content = textArea.value.trim() || (imageBase64 ? "Analyze this screenshot for scam/risk indicators." : "");
+    if (!content && !imageBase64) return;
+    loading = true; error = null; result = null;
+    runBtn.disabled = true; runLabel.textContent = "Scanning…";
+    errorBox.style.display = "none";
+    resultPanel.style.display = "none";
+    emptyState.style.display = "none";
+
+    if (imageBase64 && mode === "image") {
+      scanPreview.src = imageBase64;
+      scanPreview.style.display = "block";
+      scanText.style.display = "none";
+    } else {
+      scanPreview.style.display = "none";
+      scanText.style.display = "grid";
+    }
+    scanPanel.style.display = "block";
+
+    try {
+      const resp = await fetch(`${SUPABASE_URL}/functions/v1/analyze`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+          "apikey": SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ content, kind: mode, imageBase64: imageBase64 || undefined }),
+      });
+      const data = await resp.json();
+      if (!resp.ok || data?.error) throw new Error(data?.error || `Request failed (${resp.status})`);
+      result = data;
+      renderResult();
+      updateAmbientGlow(result.risk_score);
+    } catch (e) {
+      error = e?.message || "Something went wrong. Please try again.";
+      errorBox.textContent = error;
+      errorBox.style.display = "block";
+      emptyState.style.display = "block";
+    } finally {
+      loading = false;
+      runLabel.textContent = "Run Neural Scan";
+      scanPanel.style.display = "none";
+      updateRunBtn();
+    }
+  }
+
+  function updateAmbientGlow(score) {
+    let glow = "oklch(0.55 0.22 295 / 0.35)";
+    if (score >= 66) glow = "oklch(0.55 0.25 22 / 0.45)";
+    else if (score < 33) glow = "oklch(0.65 0.18 160 / 0.35)";
+    else glow = "oklch(0.7 0.18 75 / 0.35)";
+    document.documentElement.style.setProperty("--ambient-glow", glow);
+  }
+
+  // ---------- Markdown ----------
+  function escapeHtml(s) { return s.replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
+  function inline(s) { return escapeHtml(s).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/`([^`]+)`/g, "<code>$1</code>"); }
+  function renderMarkdown(md) {
+    const lines = (md || "").split("\n"); const out = []; let inList = false;
+    for (const raw of lines) {
+      const line = raw.replace(/\s+$/,"");
+      if (line.startsWith("## ")) { if (inList) { out.push("</ul>"); inList=false; } out.push(`<h3>${escapeHtml(line.slice(3))}</h3>`); }
+      else if (line.startsWith("# ")) { if (inList) { out.push("</ul>"); inList=false; } out.push(`<h2>${escapeHtml(line.slice(2))}</h2>`); }
+      else if (/^[-*]\s+/.test(line)) { if (!inList) { out.push("<ul>"); inList=true; } out.push(`<li>${inline(line.replace(/^[-*]\s+/,""))}</li>`); }
+      else if (!line) { if (inList) { out.push("</ul>"); inList=false; } }
+      else { if (inList) { out.push("</ul>"); inList=false; } out.push(`<p>${inline(line)}</p>`); }
+    }
+    if (inList) out.push("</ul>");
+    return out.join("\n");
+  }
+
+  // ---------- Icons (svg paths for next steps) ----------
+  const ICONS = {
+    shield: '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>',
+    alert: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+    phone: '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92"/>',
+    search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+    block: '<circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/>',
+    report: '<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/>',
+    verify: '<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
+    delete: '<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+  };
+  const SVG = (path) => `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`;
+  const ALERT_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--color-amber); flex-shrink:0; margin-top:2px;">'+ICONS.alert+'</svg>';
+  const COPY_ICON = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.6;"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+  const CHECK_ICON = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+
+  // ---------- Render Result ----------
+  function renderResult() {
+    const r = result;
+    const accents = ["var(--color-cyan)", "var(--color-violet)", "var(--color-emerald)", "var(--color-amber)"];
+    const stepsHtml = (r.next_steps || []).map((s, i) => {
+      const c = accents[i % accents.length];
+      const icon = ICONS[s.icon] || ICONS.shield;
+      return `<div class="glass step tap-press" style="box-shadow: 0 0 24px -10px ${c};">
+        <div class="step-icon" style="background: linear-gradient(135deg, ${c}, transparent); box-shadow: inset 0 0 12px -2px ${c}; color:${c};">${SVG(icon)}</div>
+        <div class="step-title">${escapeHtml(s.title)}</div>
+        <div class="step-desc">${escapeHtml(s.description)}</div>
+      </div>`;
+    }).join("");
+
+    const flagsHtml = (r.red_flags && r.red_flags.length)
+      ? `<ul class="red-flags">${r.red_flags.map(f => `<li class="glass red-flag">${ALERT_ICON}<span>${escapeHtml(f)}</span></li>`).join("")}</ul>`
+      : `<div style="display:flex; height:100%; align-items:center; justify-content:center; color:var(--muted-foreground); font-size:14px;">No major warning signs found.</div>`;
+
+    const repliesHtml = (r.smart_replies && r.smart_replies.length) ? `
+      <div class="glass-strong rise" style="padding:24px;">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+          <svg class="icon-md" style="color:var(--color-cyan)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z"/></svg>
+          <div class="eyebrow">Smart replies</div>
+        </div>
+        <div class="replies" id="repliesWrap">
+          ${r.smart_replies.map((rep,i) => `<button class="chip-glow reply" data-idx="${i}" data-text="${escapeHtml(rep).replace(/"/g,'&quot;')}">${COPY_ICON}<span class="txt">${escapeHtml(rep)}</span></button>`).join("")}
+        </div>
+        <p style="margin-top:12px; font-size:11px; color:var(--muted-foreground);">Tap to copy. Always review before sending.</p>
+      </div>` : "";
+
+    resultPanel.innerHTML = `
+      <div class="grid-2">
+        <div class="glass-strong rise" style="padding:24px;">
+          <div class="eyebrow" style="margin-bottom:8px;">Risk Gauge</div>
+          ${gaugeSvg(r.risk_score, r.risk_level)}
+          <p style="margin-top:16px; text-align:center; font-size:14px; color:var(--muted-foreground);">${escapeHtml(r.summary)}</p>
+        </div>
+        <div class="glass-strong rise" style="padding:24px;">
+          <div class="eyebrow" style="margin-bottom:12px;">Red flags detected</div>
+          ${flagsHtml}
+        </div>
+      </div>
+      <div class="glass-strong rise" style="padding:24px;">
+        <div class="eyebrow" style="margin-bottom:16px;">Next steps</div>
+        <div class="bento">${stepsHtml}</div>
+      </div>
+      <div class="glass-strong rise" style="padding:24px;">
+        <div class="eyebrow" style="margin-bottom:12px;">Detailed analysis</div>
+        <div class="prose-content" style="font-size:14px; line-height:1.6; color:var(--muted-foreground);">${renderMarkdown(r.analysis_markdown)}</div>
+      </div>
+      ${repliesHtml}
+    `;
+    resultPanel.style.display = "flex";
+    animateGauge(r.risk_score);
+
+    // Wire smart replies
+    const wrap = document.getElementById("repliesWrap");
+    if (wrap) {
+      wrap.addEventListener("click", (e) => {
+        const btn = e.target.closest(".reply"); if (!btn) return;
+        const rect = btn.getBoundingClientRect();
+        const ripple = document.createElement("span");
+        ripple.className = "ripple";
+        const size = Math.max(rect.width, rect.height);
+        ripple.style.width = ripple.style.height = size + "px";
+        ripple.style.left = (e.clientX - rect.left - size/2) + "px";
+        ripple.style.top = (e.clientY - rect.top - size/2) + "px";
+        btn.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 600);
+        navigator.clipboard.writeText(btn.dataset.text).catch(()=>{});
+        btn.querySelector("svg").outerHTML = CHECK_ICON;
+        setTimeout(() => { const s = btn.querySelector("svg"); if (s) s.outerHTML = COPY_ICON; }, 1500);
+      });
+    }
+  }
+
+  // ---------- Risk Gauge ----------
+  function colorFor(score) {
+    if (score < 33) return "var(--color-emerald)";
+    if (score < 66) return "var(--color-amber)";
+    return "var(--color-crimson)";
+  }
+  function arcPath(startA, endA) {
+    const r=110, cx=140, cy=140;
+    const s = Math.PI/180 * startA, e = Math.PI/180 * endA;
+    const x1 = cx + r*Math.cos(s), y1 = cy + r*Math.sin(s);
+    const x2 = cx + r*Math.cos(e), y2 = cy + r*Math.sin(e);
+    const large = (endA - startA) <= 180 ? 0 : 1;
+    return `M ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2}`;
+  }
+  function gaugeSvg(score, level) {
+    const ticks = [];
+    for (let i = 0; i < 11; i++) {
+      const a = 180 + (i*180)/10;
+      const rad = a * Math.PI/180;
+      const r = 110, cx = 140, cy = 140;
+      const x1 = cx + (r-26)*Math.cos(rad), y1 = cy + (r-26)*Math.sin(rad);
+      const x2 = cx + (r-14)*Math.cos(rad), y2 = cy + (r-14)*Math.sin(rad);
+      ticks.push(`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="rgba(255,255,255,0.25)" stroke-width="1.5"/>`);
+    }
+    const c = colorFor(score);
+    return `
+      <div style="display:flex; flex-direction:column; align-items:center;">
+        <svg viewBox="0 0 280 170" style="width:100%; max-width:380px;">
+          <defs>
+            <linearGradient id="gaugeGrad" x1="0" x2="1" y1="0" y2="0">
+              <stop offset="0%" stop-color="oklch(0.78 0.18 160)"/>
+              <stop offset="50%" stop-color="oklch(0.82 0.17 75)"/>
+              <stop offset="100%" stop-color="oklch(0.65 0.24 20)"/>
+            </linearGradient>
+            <filter id="glow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <path d="${arcPath(180,360)}" stroke="rgba(255,255,255,0.08)" stroke-width="18" fill="none" stroke-linecap="round"/>
+          <path d="${arcPath(180,360)}" stroke="url(#gaugeGrad)" stroke-width="18" fill="none" stroke-linecap="round" opacity="0.9" filter="url(#glow)"/>
+          ${ticks.join("")}
+          <g id="needleG" style="transform: rotate(-90deg); transform-origin: 140px 140px; transition: transform 200ms linear;">
+            <line x1="140" y1="140" x2="140" y2="38" stroke="${c}" stroke-width="3" stroke-linecap="round" filter="url(#glow)"/>
+            <circle cx="140" cy="140" r="9" fill="${c}" filter="url(#glow)"/>
+            <circle cx="140" cy="140" r="4" fill="#1c1830"/>
+          </g>
+        </svg>
+        <div style="margin-top:-24px; text-align:center;">
+          <div id="scoreNum" class="text-metallic" style="font-size:48px; font-weight:700; font-variant-numeric: tabular-nums;">0</div>
+          <div style="margin-top:4px; font-size:11px; letter-spacing:0.3em; text-transform:uppercase; color:var(--muted-foreground);">Risk score</div>
+          <div class="chip-glow" style="margin-top:12px; display:inline-flex; align-items:center; gap:8px; border-radius:9999px; padding:4px 12px; font-size:11px; font-weight:500; text-transform:uppercase; letter-spacing:0.15em;">
+            <span style="height:6px; width:6px; border-radius:9999px; background:${c}; box-shadow:0 0 10px ${c};"></span>${escapeHtml(level)}
+          </div>
+        </div>
+      </div>`;
+  }
+  function animateGauge(target) {
+    const num = document.getElementById("scoreNum");
+    const g = document.getElementById("needleG");
+    if (!num || !g) return;
+    const dur = 1100; const t0 = performance.now();
+    function tick(t) {
+      const p = Math.min(1, (t-t0)/dur);
+      const eased = 1 - Math.pow(1-p, 3);
+      const v = target * eased;
+      num.textContent = Math.round(v);
+      const angle = -90 + (v/100)*180;
+      g.style.transform = `rotate(${angle}deg)`;
+      if (p < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+</script>
+</body>
+</html>
